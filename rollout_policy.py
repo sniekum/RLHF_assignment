@@ -3,9 +3,9 @@ import torch.nn as nn
 from torch.distributions.categorical import Categorical
 from torch.optim import Adam
 import numpy as np
-import gym
-from gym.spaces import Discrete, Box
-import matplotlib.pyplot as plt
+import gymnasium as gym
+from gymnasium.spaces import Discrete, Box
+from matplotlib import pyplot as plt
 from vpg import mlp
 
 
@@ -21,9 +21,9 @@ def generate_rollout(policy, env, rendering = False):
 
 
     # reset episode-specific variables
-    obs = env.reset()       # first obs comes from starting distribution
-    done = False            # signal from environment that episode is over
-    ep_rews = []            # list for rewards accrued throughout ep
+    obs, _ = env.reset()       # first obs comes from starting distribution
+    done = False               # signal from environment that episode is over
+    ep_rews = []               # list for rewards accrued throughout ep
 
     cum_ret = 0
     obs_traj = []
@@ -35,7 +35,8 @@ def generate_rollout(policy, env, rendering = False):
             env.render()
         # act in the environment
         act = get_action(policy, torch.as_tensor(obs, dtype=torch.float32))
-        obs, rew, done, _ = env.step(act)
+        obs, rew, terminated, truncated, _ = env.step(act)
+        done = terminated or truncated
         cum_ret += rew
         obs_traj.append(obs)
 
